@@ -8,21 +8,21 @@ js端使用jsencrypt.js包的方法公钥加密
 java端使用如下代码私钥解密
 
 ```java
-/**
-     * 公钥解密
+    /**
+     * 私钥解密
      *
      * @param data
      * @param key
      * @return
      * @throws Exception
      */
-    public static byte[] decryptByPublicKey(byte[] data, String key) throws Exception {
+    public static byte[] decryptByPrivateKey(byte[] data, String key) throws Exception {
         byte[] keyBytes = Coder.decryptBASE64(key);
-        X509EncodedKeySpec x509EncodedKeySpec = new X509EncodedKeySpec(keyBytes);
+        PKCS8EncodedKeySpec pkcs8EncodedKeySpec = new PKCS8EncodedKeySpec(keyBytes);
         KeyFactory keyFactory = KeyFactory.getInstance(KEY_ALGORTHM);
-        Key publicKey = keyFactory.generatePublic(x509EncodedKeySpec);
+        Key privateKey = keyFactory.generatePrivate(pkcs8EncodedKeySpec);
         Cipher cipher = Cipher.getInstance(keyFactory.getAlgorithm());
-        cipher.init(Cipher.DECRYPT_MODE, publicKey);
+        cipher.init(Cipher.DECRYPT_MODE, privateKey);
         return cipher.doFinal(data);
     }
 ```
