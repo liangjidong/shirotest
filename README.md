@@ -6,7 +6,8 @@
 java端的加密解密和js端的加密解密方法应该匹配。   
 js端使用jsencrypt.js包的方法公钥加密
 java端使用如下代码私钥解密
----
+
+```java
 /**
      * 公钥解密
      *
@@ -24,6 +25,7 @@ java端使用如下代码私钥解密
         cipher.init(Cipher.DECRYPT_MODE, publicKey);
         return cipher.doFinal(data);
     }
+```
 
 ## 3，实现用户注册，基于邮箱的账户激活
 
