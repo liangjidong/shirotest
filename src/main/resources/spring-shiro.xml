@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    http://www.springframework.org/schema/tx
+    http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+    http://www.springframework.org/schema/aop
+    http://www.springframework.org/schema/aop/spring-aop-3.0.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+
+    <description>Shiro Configuration</description>
+
+    <context:property-placeholder location="classpath:redis.properties"
+                                  ignore-unresolvable="true"/>
+    <!-- 凭证匹配器 -->
+    <bean id="credentialsMatcher"
+          class="shiro.credentials.RetryLimitHashedCredentialsMatcher">
+        <constructor-arg ref="shiroEhcacheManager"/>
+        <property name="hashAlgorithmName" value="md5"/>
+        <property name="hashIterations" value="2"/>
+        <property name="storedCredentialsHexEncoded" value="true"/>
+    </bean>
+    <!-- Realm实现 -->
+    <bean id="userRealm" class="shiro.realm.UserRealm">
+        <property name="userService" ref="userService"/>
+        <property name="credentialsMatcher" ref="credentialsMatcher"/>
+        <property name="cachingEnabled" value="true"/>
+        <property name="authenticationCachingEnabled" value="true"/>
+        <property name="authenticationCacheName" value="authenticationCache"/>
+        <property name="authorizationCachingEnabled" value="true"/>
+        <property name="authorizationCacheName" value="authorizationCache"/>
+    </bean>
+    <!-- 安全管理器 -->
+    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <property name="realm" ref="userRealm"/>
+        <property name="sessionMode" value="native"/>
+        <property name="sessionManager" ref="sessionManager"/>
+        <!-- <property name="rememberMeManager" ref="rememberMeManager"/> -->
+        <property name="cacheManager" ref="shiroEhcacheManager"/>
+    </bean>
+    <!-- Shiro的Web过滤器 -->
+    <bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+        <!-- Shiro的核心安全接口,这个属性是必须的 -->
+        <property name="securityManager" ref="securityManager"/>
+        <property name="filterChainDefinitions">
+            <value>
+                /test/**=anon
+                /usr/user/**=anon
+            </value>
+        </property>
+
+    </bean>
+
+    <!--相当于调用SecurityUtils.setSecurityManager(securityManager)-->
+    <bean
+            class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+        <property name="staticMethod"
+                  value="org.apache.shiro.SecurityUtils.setSecurityManager"/>
+        <property name="arguments" ref="securityManager"/>
+    </bean>
+
+
+    <!-- Shiro生命周期处理器-->
+    <bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor"/>
+
+
+    <!-- Cookie模板 -->
+    <bean id="sessionIdCookie" class="org.apache.shiro.web.servlet.SimpleCookie">
+        <constructor-arg value="sid"/>
+        <property name="httpOnly" value="true"/>
+        <property name="maxAge" value="-1"/>
+    </bean>
+
+    <!-- 会话ID生成器 -->
+    <bean id="sessionIdGenerator"
+          class="org.apache.shiro.session.mgt.eis.JavaUuidSessionIdGenerator"/>
+
+    <!-- 会话DAO -->
+    <!--使用redis-->
+    <bean id="sessionDAO" class="shiro.session.CustomShiroSessionDao">
+        <property name="sessionIdGenerator" ref="sessionIdGenerator"/>
+        <property name="shiroSessionRepository" ref="shiroSessionRepository"/>
+        <!--注入符合环境的session类型,用于反序列化-->
+        <property name="sessionType">
+            <value>org.apache.shiro.session.mgt.SimpleSession</value>
+        </property>
+    </bean>
+    <!--<bean id="shiroSessionRepository" class="shiro.session.JedisShiroSessionRepository"/>-->
+    <bean id="shiroSessionRepository" class="shiro.session.EcacheShiroSessionRepository"/>
+
+    <!-- 会话管理器 -->
+    <bean id="sessionManager"
+          class="org.apache.shiro.web.session.mgt.DefaultWebSessionManager">
+        <property name="globalSessionTimeout" value="1800000"/>
+        <property name="sessionDAO" ref="sessionDAO"/>
+        <property name="sessionIdCookieEnabled" value="true"/>
+        <property name="sessionIdCookie" ref="sessionIdCookie"/>
+        <property name="sessionListeners" ref="sessionListener1"/>
+        <property name="sessionFactory" ref="sessionFactory"/>
+    </bean>
+    <bean id="sessionFactory" class="org.apache.shiro.session.mgt.SimpleSessionFactory"></bean>
+    <bean id="sessionListener1" class="shiro.session.MySessionListener"></bean>
+
+    <!--使用ehcache缓存数据-->
+    <bean id="shiroEhcacheManager" class="org.apache.shiro.cache.ehcache.EhCacheManager">
+        <!--classpath是缓存属性的配置文件 -->
+        <property name="cacheManagerConfigFile" value="classpath:ehcache.xml"/>
+    </bean>
+
+    <!-- 控制器异常处理 -->
+    <bean id="exceptionHandlerExceptionResolver"
+          class="org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver">
+    </bean>
+    <bean class="shiro.exception.DefaultExceptionHandler"/>
+
+
+    <!--用于开启Shiro Spring AOP权限注解的支持；<aop:config proxy-target-class="true">表示代理类。-->
+    <bean class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
+        <property name="securityManager" ref="securityManager"/>
+    </bean>
+</beans>  

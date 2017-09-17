@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+    http://www.springframework.org/schema/tx
+    http://www.springframework.org/schema/tx/spring-tx-3.0.xsd
+    http://www.springframework.org/schema/aop
+    http://www.springframework.org/schema/aop/spring-aop-3.0.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+	<description>redis配置</description>
+	<context:property-placeholder location="classpath:redis.properties"
+		ignore-unresolvable="true" />
+
+	<!-- redis 相关配置 -->
+	<bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
+		<property name="maxTotal">
+			<value>${redis.pool.maxActive}</value>
+		</property>
+		<property name="maxIdle">
+			<value>${redis.pool.maxIdle}</value>
+		</property>
+		<property name="testOnBorrow" value="true" />
+		<property name="testOnReturn" value="true" />
+	</bean>
+
+	<!-- <bean id="shardedJedisPool" class="redis.clients.jedis.ShardedJedisPool" 
+		scope="singleton"> <cAonstructor-arg index="0" ref="jedisPoolConfig" /> <constructor-arg 
+		index="1"> <list> <bean class="redis.clients.jedis.JedisShardInfo"> <constructor-arg 
+		name="host" value="${redis.uri}" /> </bean> </list> </constructor-arg> </bean> -->
+	<bean id="redisUtils" class="movrecom.core.redis.RedisUtils">
+		<constructor-arg index="0" value="${redis.hosts}" />
+		<constructor-arg index="1" ref="jedisPoolConfig" />
+	</bean>
+</beans>
