@@ -15,8 +15,8 @@ public class EmailUtils {
     public static void main(String[] args) {
     }
 
-    private static final String FROM = "boxueshansiljd@foxmail.com";
-    private static final String PWD = "vewjzrjrzciqbcfj";
+    private static final String FROM = "XXX@xx.com";
+    private static final String PWD = "xxxxxxxxxxxxxxxxx";
 
     /**
      * 发送账号激活邮件，需要传入对应用户的随机码
