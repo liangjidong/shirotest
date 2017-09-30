@@ -34,6 +34,7 @@
     <bean id="permissionDao" class="shiro.dao.PermissionDaoImpl" parent="baseDao"/>
     <bean id="roleDao" class="shiro.dao.RoleDaoImpl" parent="baseDao"/>
     <bean id="userDao" class="shiro.dao.UserDaoImpl" parent="baseDao"/>
+    <bean id="menuDao" class="shiro.dao.MenuDaoImpl" parent="baseDao"/>
 
     <!-- Service -->
     <bean id="permissionService" class="shiro.service.PermissionServiceImpl">
@@ -52,5 +53,9 @@
     <bean id="userService" class="shiro.service.UserServiceImpl">
         <property name="userDao" ref="userDao"/>
         <property name="passwordHelper" ref="passwordHelper"/>
+    </bean>
+
+    <bean id="menuService" class="shiro.service.MenuServiceImpl">
+        <property name="menuDao" ref="menuDao"/>
     </bean>
 </beans>
